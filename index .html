@@ -8,9 +8,8 @@
 <style>
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   color: white;
-  overflow: hidden;
   background: linear-gradient(-45deg, #0a0000, #1a0000, #000, #220000);
   background-size: 400% 400%;
   animation: bg 8s infinite alternate;
@@ -27,7 +26,6 @@ body {
   padding: 15px;
   background: #000000cc;
   border-bottom: 2px solid red;
-  font-size: 18px;
 }
 
 .login, .container {
@@ -64,16 +62,13 @@ body {
   height: 100px;
   background: radial-gradient(circle, red, darkred);
   border-radius: 50%;
-  box-shadow: 0 0 20px red;
 }
 
 #multiFloat {
   position: absolute;
   left: 60%;
   bottom: 100px;
-  color: #00ffcc;
   font-weight: bold;
-  font-size: 18px;
 }
 
 button {
@@ -83,29 +78,10 @@ button {
   margin-top: 10px;
   background: red;
   color: white;
-  font-weight: bold;
   cursor: pointer;
 }
 
 .segurar { background: green; }
-
-#resgateTela {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: #000000ee;
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-.box {
-  background: #111;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 0 20px red;
-  text-align: center;
-}
 </style>
 </head>
 
@@ -115,16 +91,15 @@ button {
   <div class="login-box">
     <h2>DEATH STORE</h2>
     <input id="keyInput" placeholder="Digite sua KEY">
-    <button onclick="entrar()">Entrar</button>
+    <button id="btnEntrar">Entrar</button>
   </div>
 </div>
 
 <div class="topo" id="topo">
-  <span>💎 <span id="saldo">0</span></span>
-  <button onclick="resgatar()">SACAR</button>
+  💎 <span id="saldo">0</span>
 </div>
 
-<div class="container" id="game">
+<div class="container" id="game" style="display:none;">
   <div class="game-area">
     <div id="balao"></div>
     <div id="multiFloat">1.00x</div>
@@ -132,51 +107,35 @@ button {
   <button id="btnSegurar" class="segurar">SEGURAR</button>
 </div>
 
-<div id="resgateTela">
-  <div class="box">
-    <h2>RESGATE</h2>
-    <h1 id="valor"></h1>
-    <button onclick="fechar()">Fechar</button>
-  </div>
-</div>
-
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+
 let saldo = 1000000;
 let multi = 1;
-let intervalo;
+let intervalo = null;
 let jogou = false;
-let explodiu = false;
 let target = 1;
 
 const keys = {
 "KEY1":145372,
 "KEY2":172918,
-"KEY3":108564,
-"KEY4":180231,
-"KEY5":134982,
-"KEY6":119847,
-"KEY7":160553,
-"KEY8":125764,
-"KEY9":178345,
-"KEY10":142678,
-"KEY11":115999,
-"KEY12":155321,
-"KEY13":122456,
-"KEY14":167888,
-"KEY15":138777,
-"KEY16":110234,
-"KEY17":150999,
-"KEY18":128654,
-"KEY19":180000,
-"KEY20":136789
+"KEY3":108564
 };
 
-function entrar(){
+const balao = document.getElementById("balao");
+const multiFloat = document.getElementById("multiFloat");
+const btnSegurar = document.getElementById("btnSegurar");
+const btnEntrar = document.getElementById("btnEntrar");
+
+function atualizar(){
+  document.getElementById("saldo").innerText = saldo.toLocaleString();
+}
+
+btnEntrar.addEventListener("click", () => {
   const key = document.getElementById("keyInput").value.trim();
 
   if(keys[key]){
     target = parseInt(keys[key].toString().substring(0,3)) / 100;
-    delete keys[key];
 
     document.getElementById("login").style.display="none";
     document.getElementById("game").style.display="flex";
@@ -184,33 +143,20 @@ function entrar(){
 
     atualizar();
   } else {
-    alert("Key inválida ou já usada");
+    alert("Key inválida");
   }
-}
+});
 
-function atualizar(){
-  document.getElementById("saldo").innerText = saldo.toLocaleString();
-}
-
-const balao = document.getElementById("balao");
-const multiFloat = document.getElementById("multiFloat");
-const btn = document.getElementById("btnSegurar");
-
-btn.addEventListener("mousedown", iniciar);
-btn.addEventListener("mouseup", parar);
-btn.addEventListener("touchstart", iniciar);
-btn.addEventListener("touchend", parar);
+btnSegurar.addEventListener("mousedown", iniciar);
+btnSegurar.addEventListener("mouseup", parar);
+btnSegurar.addEventListener("touchstart", iniciar);
+btnSegurar.addEventListener("touchend", parar);
 
 function iniciar(){
   if(jogou) return;
 
   intervalo = setInterval(()=>{
     multi += 0.02;
-
-    if(Math.random() < 0.01){
-      explodir();
-      return;
-    }
 
     if(multi >= target){
       multi = target;
@@ -221,42 +167,23 @@ function iniciar(){
 
     let altura = parseInt(balao.style.bottom || 0);
     balao.style.bottom = (altura + 3) + "px";
-    multiFloat.style.bottom = (altura + 120) + "px";
 
-    balao.style.transform = "translateX(-50%) scale(" + multi + ")";
   },50);
 }
 
 function parar(){
   if(jogou) return;
   jogou = true;
+
   clearInterval(intervalo);
 
-  if(!explodiu){
-    saldo = Math.floor(saldo * multi);
-    alert("💎 Parou em " + multi.toFixed(2) + "x");
-  }
+  saldo = Math.floor(saldo * multi);
+  alert("💎 Parou em " + multi.toFixed(2) + "x");
 
   atualizar();
 }
 
-function explodir(){
-  explodiu = true;
-  jogou = true;
-  clearInterval(intervalo);
-  alert("💣 O balão explodiu!");
-}
-
-function resgatar(){
-  document.getElementById("valor").innerText = saldo.toLocaleString();
-  saldo = 0;
-  atualizar();
-  document.getElementById("resgateTela").style.display="flex";
-}
-
-function fechar(){
-  document.getElementById("resgateTela").style.display="none";
-}
+});
 </script>
 
 </body>
