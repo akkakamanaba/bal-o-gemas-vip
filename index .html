@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Death Store Pro</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  color: white;
+  overflow: hidden;
+  background: linear-gradient(-45deg, #0a0000, #1a0000, #000, #220000);
+  background-size: 400% 400%;
+  animation: bg 8s infinite alternate;
+}
+
+@keyframes bg {
+  0% {background-position: left;}
+  100% {background-position: right;}
+}
+
+.topo {
+  display: none;
+  justify-content: space-between;
+  padding: 15px;
+  background: #000000cc;
+  border-bottom: 2px solid red;
+  font-size: 18px;
+}
+
+.login, .container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.login-box {
+  background: #111;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px red;
+}
+
+.game-area {
+  width: 300px;
+  height: 350px;
+  border: 2px solid red;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+#balao {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 100px;
+  background: radial-gradient(circle, red, darkred);
+  border-radius: 50%;
+  box-shadow: 0 0 20px red;
+  transition: transform 0.1s;
+}
+
+#multiFloat {
+  position: absolute;
+  left: 60%;
+  bottom: 100px;
+  color: #00ffcc;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow: 0 0 10px #00ffcc;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 10px;
+  background: red;
+  color: white;
+  font-weight: bold;
+}
+
+.segurar { background: green; }
+
+#resgateTela {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: #000000ee;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.box {
+  background: #111;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px red;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login" id="login">
+  <div class="login-box">
+    <h2>DEATH STORE</h2>
+    <input id="keyInput" placeholder="Digite sua KEY">
+    <button onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
+<div class="topo" id="topo">
+  <span>💎 <span id="saldo">0</span></span>
+  <button onclick="resgatar()">SACAR</button>
+</div>
+
+<div class="container" id="game">
+  <div class="game-area">
+    <div id="balao"></div>
+    <div id="multiFloat">1.00x</div>
+  </div>
+  <button id="btnSegurar" class="segurar">SEGURAR</button>
+</div>
+
+<div id="resgateTela">
+  <div class="box">
+    <h2>RESGATE</h2>
+    <h1 id="valor"></h1>
+    <button onclick="fechar()">Fechar</button>
+  </div>
+</div>
+
+<script>
+let saldo = 1000000;
+let multi = 1;
+let intervalo;
+let jogou = false;
+let explodiu = false;
+let target = 1;
+
+const keys = {
+"KEY1":145372,
+"KEY2":172918,
+"KEY3":108564,
+"KEY4":180231,
+"KEY5":134982,
+"KEY6":119847,
+"KEY7":160553,
+"KEY8":125764,
+"KEY9":178345,
+"KEY10":142678,
+"KEY11":115999,
+"KEY12":155321,
+"KEY13":122456,
+"KEY14":167888,
+"KEY15":138777,
+"KEY16":110234,
+"KEY17":150999,
+"KEY18":128654,
+"KEY19":180000,
+"KEY20":136789
+};
+
+function entrar(){
+  let key = document.getElementById("keyInput").value;
+
+  if(keys[key]){
+    target = parseInt(keys[key].toString().substring(0,3)) / 100;
+    delete keys[key];
+
+    document.getElementById("login").style.display="none";
+    document.getElementById("game").style.display="flex";
+    document.getElementById("topo").style.display="flex";
+
+    atualizar();
+  } else {
+    alert("Key inválida ou já usada");
+  }
+}
+
+function atualizar(){
+  document.getElementById("saldo").innerText = saldo.toLocaleString();
+}
+
+const balao = document.getElementById("balao");
+const multiFloat = document.getElementById("multiFloat");
+
+document.getElementById("btnSegurar").addEventListener("mousedown", iniciar);
+document.getElementById("btnSegurar").addEventListener("mouseup", parar);
+document.getElementById("btnSegurar").addEventListener("touchstart", iniciar);
+document.getElementById("btnSegurar").addEventListener("touchend", parar);
+
+function iniciar(){
+  if(jogou) return;
+
+  intervalo = setInterval(()=>{
+    multi += 0.02;
+
+    if(Math.random() < 0.01){
+      explodir();
+      return;
+    }
+
+    if(multi >= target){
+      multi = target;
+      parar();
+    }
+
+    multiFloat.innerText = multi.toFixed(2) + "x";
+
+    let altura = parseInt(balao.style.bottom || 0);
+    balao.style.bottom = (altura + 3) + "px";
+    multiFloat.style.bottom = (altura + 120) + "px";
+
+    balao.style.transform = "translateX(-50%) scale(" + multi + ")";
+  },50);
+}
+
+function parar(){
+  if(jogou) return;
+  jogou = true;
+  clearInterval(intervalo);
+
+  if(!explodiu){
+    saldo = Math.floor(saldo * multi);
+    alert("💎 Parou em " + multi.toFixed(2) + "x");
+  }
+
+  atualizar();
+}
+
+function explodir(){
+  explodiu = true;
+  jogou = true;
+  clearInterval(intervalo);
+  alert("💣 O balão explodiu!");
+}
+
+function resgatar(){
+  document.getElementById("valor").innerText = saldo.toLocaleString();
+  saldo = 0;
+  atualizar();
+  document.getElementById("resgateTela").style.display="flex";
+}
+
+function fechar(){
+  document.getElementById("resgateTela").style.display="none";
+}
+</script>
+
+</body>
+</html>
